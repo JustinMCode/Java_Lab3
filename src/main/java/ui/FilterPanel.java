@@ -208,7 +208,6 @@ public class FilterPanel extends JPanel {
         if (index >= 0) {
             countryList.setSelectedIndex(index);
             countryList.ensureIndexIsVisible(index);
-            // Optionally, apply filter immediately after search
             filterData();
         } else {
             JOptionPane.showMessageDialog(this, "Country not found: " + normalizedSearch, "Search Result", JOptionPane.INFORMATION_MESSAGE);
