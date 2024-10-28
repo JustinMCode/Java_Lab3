@@ -25,7 +25,7 @@ public class FilterPanel extends JPanel {
     private final StatsPanel statsPanel;
     private final ChartPanelCustom chartPanel;
 
-    private static final int MAX_COUNTRIES = 10; // Set your desired limit
+    private static final int MAX_COUNTRIES = 5;
 
     // Constructor
     public FilterPanel(List<CountryData> dataList, TablePanel tablePanel, StatsPanel statsPanel, ChartPanelCustom chartPanel) {
@@ -87,7 +87,7 @@ public class FilterPanel extends JPanel {
         countryNames.forEach(countryListModel::addElement);
         countryList = new JList<>(countryListModel);
         countryList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
-        countryList.setVisibleRowCount(10); // Adjust as needed
+        countryList.setVisibleRowCount(10);
 
         // Add ListSelectionListener to enforce selection limit
         countryList.addListSelectionListener(e -> {
@@ -116,11 +116,9 @@ public class FilterPanel extends JPanel {
         searchPanel.add(searchField);
         searchPanel.add(searchButton);
 
-        // Initialize select/deselect all buttons
+        // Initialize deselect all button
         JPanel selectionButtonsPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        JButton selectAllButton = new JButton("Select All");
         JButton deselectAllButton = new JButton("Deselect All");
-        selectionButtonsPanel.add(selectAllButton);
         selectionButtonsPanel.add(deselectAllButton);
 
         // Add search panel and selection buttons to the countryFilterPanel
@@ -134,7 +132,6 @@ public class FilterPanel extends JPanel {
         applyFilterButton.addActionListener(this::applyFilter);
         clearFilterButton.addActionListener(this::clearFilter);
         searchButton.addActionListener(e -> searchCountry(searchField.getText()));
-        selectAllButton.addActionListener(e -> selectAllCountries());
         deselectAllButton.addActionListener(e -> countryList.clearSelection());
         metricComboBox.addActionListener(this::changeMetric); // Update when metric changes
 
@@ -249,15 +246,6 @@ public class FilterPanel extends JPanel {
             filterData();
         } else {
             JOptionPane.showMessageDialog(this, "Country not found: " + normalizedSearch, "Search Result", JOptionPane.INFORMATION_MESSAGE);
-        }
-    }
-
-    // Selects all countries in the list.
-    private void selectAllCountries() {
-        int start = 0;
-        int end = countryListModel.getSize() - 1;
-        if (end >= 0) {
-            countryList.setSelectionInterval(start, end);
         }
     }
 }

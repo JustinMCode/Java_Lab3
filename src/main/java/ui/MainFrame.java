@@ -54,35 +54,43 @@ public class MainFrame extends JFrame {
 
         // Final Frame Settings
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(1200, 800);
+        setSize(1400, 1000);
         setLocationRelativeTo(null); // Center the window
         setVisible(true);
     }
 
     // Method to create the main split pane
     private JSplitPane createMainSplitPane(StatsPanel statsPanel, ChartPanelCustom chartPanel) {
+        // Set preferred sizes for components to influence initial layout
+        tablePanel.setPreferredSize(new Dimension(800, 200));
+        detailsPanel.setPreferredSize(new Dimension(800, 400));
+
         // Adjusted divider location and resize weight for topSplitPane
         JSplitPane topSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
         topSplitPane.setTopComponent(tablePanel);
         topSplitPane.setBottomComponent(detailsPanel);
-        topSplitPane.setDividerLocation(300);
-        topSplitPane.setResizeWeight(0.3);
+
+        // Set divider location to allocate more space to detailsPanel
+        topSplitPane.setDividerLocation(100);
+        topSplitPane.setResizeWeight(0.33);
         topSplitPane.setOneTouchExpandable(true);
 
         // Adjusted divider location and resize weight for bottomSplitPane
         JSplitPane bottomSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
         bottomSplitPane.setLeftComponent(statsPanel);
         bottomSplitPane.setRightComponent(chartPanel);
-        bottomSplitPane.setDividerLocation(300);
-        bottomSplitPane.setResizeWeight(0.3);
+        bottomSplitPane.setDividerLocation(150);
+        bottomSplitPane.setResizeWeight(0.2);
         bottomSplitPane.setOneTouchExpandable(true);
 
         // Main Split Pane: Top and Bottom
         JSplitPane mainSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
         mainSplitPane.setTopComponent(topSplitPane);
         mainSplitPane.setBottomComponent(bottomSplitPane);
-        mainSplitPane.setDividerLocation(600);
-        mainSplitPane.setResizeWeight(0.6);
+
+        // Adjusted divider location and resize weight for mainSplitPane
+        mainSplitPane.setDividerLocation(350);
+        mainSplitPane.setResizeWeight(0.5);
         mainSplitPane.setOneTouchExpandable(true);
 
         return mainSplitPane;
