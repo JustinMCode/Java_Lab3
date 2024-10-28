@@ -7,11 +7,14 @@ import main.java.model.CountryData;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * CSVReader handles the ingestion and parsing of GDP data from a CSV file.
  */
 public class CSVReader {
+    private static final Logger LOGGER = Logger.getLogger(CSVReader.class.getName());
     private final String csvFilePath;
 
     // Constructor initializes the CSVReader with the file path.
@@ -43,8 +46,7 @@ public class CSVReader {
                         try {
                             value = Double.parseDouble(valueStr);
                         } catch (NumberFormatException e) {
-                            // Handle invalid number formats
-                            value = null;
+                            LOGGER.log(Level.WARNING, "Invalid number format for year {0} in country {1}: {2}", new Object[]{year, countryName, valueStr});
                         }
                     }
 
@@ -54,7 +56,7 @@ public class CSVReader {
                 dataList.add(countryData);
             }
         } catch (IOException | CsvValidationException e) {
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Error reading CSV file: {0}", e.getMessage());
         }
 
         return dataList;

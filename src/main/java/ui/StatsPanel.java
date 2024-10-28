@@ -41,8 +41,7 @@ public class StatsPanel extends JPanel {
                         System.out.println("Series name is null for country: " + data.getCountryName());
                         return false;
                     }
-                    boolean matches = seriesName.trim().equalsIgnoreCase("GDP per capita (constant 2005 US$)");
-                    return matches;
+                    return seriesName.trim().equalsIgnoreCase("GDP per capita (constant 2005 US$)");
                 })
                 .map(data -> {
                     Map<Integer, Double> yearlyData = data.getYearlyData(); // Use Map<Integer, Double>

@@ -14,18 +14,15 @@ import java.util.stream.Collectors;
  * including selecting multiple countries.
  */
 public class FilterPanel extends JPanel {
-    private JComboBox<String> seriesComboBox;
-    private JButton applyFilterButton;
-    private JButton clearFilterButton;
+    private final JComboBox<String> seriesComboBox;
 
-    private JList<String> countryList;
-    private DefaultListModel<String> countryListModel;
-    private JScrollPane countryScrollPane;
+    private final JList<String> countryList;
+    private final DefaultListModel<String> countryListModel;
 
-    private List<CountryData> originalData;
-    private TablePanel tablePanel;
-    private StatsPanel statsPanel;
-    private ChartPanelCustom chartPanel;
+    private final List<CountryData> originalData;
+    private final TablePanel tablePanel;
+    private final StatsPanel statsPanel;
+    private final ChartPanelCustom chartPanel;
 
     // Constructor
     public FilterPanel(List<CountryData> dataList, TablePanel tablePanel, StatsPanel statsPanel, ChartPanelCustom chartPanel) {
@@ -50,8 +47,8 @@ public class FilterPanel extends JPanel {
         seriesNames.forEach(seriesComboBox::addItem);
 
         // Initialize buttons
-        applyFilterButton = new JButton("Apply Filter");
-        clearFilterButton = new JButton("Clear Filter");
+        JButton applyFilterButton = new JButton("Apply Filter");
+        JButton clearFilterButton = new JButton("Clear Filter");
 
         // Add components to the top filter panel
         topFilterPanel.add(new JLabel("Filter by Series: "));
@@ -81,7 +78,7 @@ public class FilterPanel extends JPanel {
         countryList.setVisibleRowCount(10); // Adjust as needed
 
         // Initialize JScrollPane with a preferred size to limit its height
-        countryScrollPane = new JScrollPane(countryList);
+        JScrollPane countryScrollPane = new JScrollPane(countryList);
         countryScrollPane.setPreferredSize(new Dimension(250, 200));
 
         // Initialize search panel
@@ -123,7 +120,7 @@ public class FilterPanel extends JPanel {
                     e.consume();
                     int index = countryList.locationToIndex(e.getPoint());
                     if (index >= 0) {
-                        String selectedCountry = countryListModel.getElementAt(index);
+                        countryListModel.getElementAt(index);
                         // Clear existing selections and select the double-clicked country
                         countryList.clearSelection();
                         countryList.setSelectedIndex(index);
@@ -166,6 +163,7 @@ public class FilterPanel extends JPanel {
         List<CountryData> filteredData;
 
         // Filter by series
+        assert selectedSeries != null;
         if (selectedSeries.equals("All Series")) {
             filteredData = originalData;
         } else {

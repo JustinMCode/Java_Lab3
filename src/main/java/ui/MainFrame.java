@@ -9,28 +9,23 @@ import java.util.List;
 
 // MainFrame serves as the primary window of the application, integrating all UI components.
 public class MainFrame extends JFrame {
-    private List<CountryData> dataList;
 
-    private TablePanel tablePanel;
-    private StatsPanel statsPanel;
-    private ChartPanelCustom chartPanel;
-    private DetailsPanel detailsPanel;
-    private FilterPanel filterPanel;
+    private final TablePanel tablePanel;
+    private final DetailsPanel detailsPanel;
 
-    // Constructor initializes the main application window.
     public MainFrame(String csvFilePath) {
         super("Data Visualization Tool");
 
         // Load data using CSVReader
         CSVReader csvReader = new CSVReader(csvFilePath);
-        dataList = csvReader.parse();
+        List<CountryData> dataList = csvReader.parse();
 
         // Initialize UI components
         tablePanel = new TablePanel(dataList);
-        statsPanel = new StatsPanel(dataList);
-        chartPanel = new ChartPanelCustom(dataList);
+        StatsPanel statsPanel = new StatsPanel(dataList);
+        ChartPanelCustom chartPanel = new ChartPanelCustom(dataList);
         detailsPanel = new DetailsPanel();
-        filterPanel = new FilterPanel(dataList, tablePanel, statsPanel, chartPanel);
+        FilterPanel filterPanel = new FilterPanel(dataList, tablePanel, statsPanel, chartPanel);
 
         // Set up layout manager
         setLayout(new BorderLayout());
@@ -38,26 +33,8 @@ public class MainFrame extends JFrame {
         // Add FilterPanel at the top
         add(filterPanel, BorderLayout.NORTH);
 
-        // Adjusted divider location and resize weight for topSplitPane
-        JSplitPane topSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, tablePanel, detailsPanel);
-        topSplitPane.setDividerLocation(300);
-        topSplitPane.setResizeWeight(0.3);
-        topSplitPane.setOneTouchExpandable(true);
-
-        // Adjusted divider location and resize weight for bottomSplitPane
-        JSplitPane bottomSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, statsPanel, chartPanel);
-        bottomSplitPane.setDividerLocation(300);
-        bottomSplitPane.setResizeWeight(0.3);
-        bottomSplitPane.setOneTouchExpandable(true);
-
-        // Main Split Pane: Top and Bottom
-        JSplitPane mainSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, topSplitPane, bottomSplitPane);
-        mainSplitPane.setDividerLocation(600);
-        mainSplitPane.setResizeWeight(0.6);
-        mainSplitPane.setOneTouchExpandable(true);
-
         // Add main split pane to the center
-        add(mainSplitPane, BorderLayout.CENTER);
+        add(createMainSplitPane(statsPanel, chartPanel), BorderLayout.CENTER);
 
         // Event Handling: Update DetailsPanel when a table row is selected
         tablePanel.getTable().getSelectionModel().addListSelectionListener(e -> {
@@ -80,5 +57,34 @@ public class MainFrame extends JFrame {
         setSize(1200, 800);
         setLocationRelativeTo(null); // Center the window
         setVisible(true);
+    }
+
+    // Method to create the main split pane
+    private JSplitPane createMainSplitPane(StatsPanel statsPanel, ChartPanelCustom chartPanel) {
+        // Adjusted divider location and resize weight for topSplitPane
+        JSplitPane topSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
+        topSplitPane.setTopComponent(tablePanel);
+        topSplitPane.setBottomComponent(detailsPanel);
+        topSplitPane.setDividerLocation(300);
+        topSplitPane.setResizeWeight(0.3);
+        topSplitPane.setOneTouchExpandable(true);
+
+        // Adjusted divider location and resize weight for bottomSplitPane
+        JSplitPane bottomSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
+        bottomSplitPane.setLeftComponent(statsPanel);
+        bottomSplitPane.setRightComponent(chartPanel);
+        bottomSplitPane.setDividerLocation(300);
+        bottomSplitPane.setResizeWeight(0.3);
+        bottomSplitPane.setOneTouchExpandable(true);
+
+        // Main Split Pane: Top and Bottom
+        JSplitPane mainSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
+        mainSplitPane.setTopComponent(topSplitPane);
+        mainSplitPane.setBottomComponent(bottomSplitPane);
+        mainSplitPane.setDividerLocation(600);
+        mainSplitPane.setResizeWeight(0.6);
+        mainSplitPane.setOneTouchExpandable(true);
+
+        return mainSplitPane;
     }
 }

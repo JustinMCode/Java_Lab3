@@ -12,17 +12,15 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * ChartPanelCustom visualizes GDP metrics using JFreeChart.
  * Supports multiple countries for comparison.
  */
 public class ChartPanelCustom extends JPanel {
-    private JFreeChart lineChart;
-    private ChartPanel chartPanel;
-    private JComboBox<String> metricComboBox;
-    private List<CountryData> originalData;
+    private final JFreeChart lineChart;
+    private final JComboBox<String> metricComboBox;
+    private final List<CountryData> originalData;
 
     /**
      * Constructor initializes the chart with the provided data.
@@ -38,7 +36,7 @@ public class ChartPanelCustom extends JPanel {
         List<String> availableMetrics = dataList.stream()
                 .map(CountryData::getSeriesName)
                 .distinct()
-                .collect(Collectors.toList());
+                .toList();
         availableMetrics.forEach(metricComboBox::addItem);
         metricComboBox.setSelectedItem("GDP per capita (constant 2005 US$)");
 
@@ -56,7 +54,7 @@ public class ChartPanelCustom extends JPanel {
         );
 
         // Initialize ChartPanel
-        chartPanel = new ChartPanel(lineChart);
+        ChartPanel chartPanel = new ChartPanel(lineChart);
         add(chartPanel, BorderLayout.CENTER);
 
         // Add metric selection controls
