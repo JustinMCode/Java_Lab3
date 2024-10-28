@@ -24,26 +24,35 @@ public class DetailsPanel extends JPanel {
         // Add JScrollPane for scrollable text area
         JScrollPane scrollPane = new JScrollPane(detailsArea);
         add(scrollPane, BorderLayout.CENTER);
+
+        // Set preferred size
+        setPreferredSize(new Dimension(800, 200));
     }
 
     // Updates the details area with information from the selected CountryData.
     public void updateDetails(CountryData data) {
+        if (data == null) {
+            detailsArea.setText("No data available.");
+            return;
+        }
+
         StringBuilder sb = new StringBuilder();
 
-        sb.append("Country Name: ").append(data.getCountryName()).append("\n");
-        sb.append("Country Code: ").append(data.getCountryCode()).append("\n");
-        sb.append("Series Name: ").append(data.getSeriesName()).append("\n");
-        sb.append("Series Code: ").append(data.getSeriesCode()).append("\n\n");
+        sb.append("Country Name: ").append(data.getCountryName() != null ? data.getCountryName() : "N/A").append("\n");
+        sb.append("Country Code: ").append(data.getCountryCode() != null ? data.getCountryCode() : "N/A").append("\n");
+        sb.append("Series Name: ").append(data.getSeriesName() != null ? data.getSeriesName() : "N/A").append("\n");
+        sb.append("Series Code: ").append(data.getSeriesCode() != null ? data.getSeriesCode() : "N/A").append("\n\n");
         sb.append("Yearly Data:\n");
 
-        for (Map.Entry<Integer, Double> entry : data.getYearlyData().entrySet()) {
-            sb.append("  ").append(entry.getKey()).append(": ");
-            if (entry.getValue() != null) {
-                sb.append(entry.getValue());
-            } else {
-                sb.append("N/A");
+        Map<Integer, ? extends Number> yearlyData = data.getYearlyData();
+        if (yearlyData != null && !yearlyData.isEmpty()) {
+            for (Map.Entry<Integer, ? extends Number> entry : yearlyData.entrySet()) {
+                sb.append("  ").append(entry.getKey()).append(": ");
+                sb.append(entry.getValue() != null ? entry.getValue().toString() : "N/A");
+                sb.append("\n");
             }
-            sb.append("\n");
+        } else {
+            sb.append("  No yearly data available.\n");
         }
 
         detailsArea.setText(sb.toString());

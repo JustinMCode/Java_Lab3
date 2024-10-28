@@ -38,13 +38,13 @@ public class MainFrame extends JFrame {
         // Add FilterPanel at the top
         add(filterPanel, BorderLayout.NORTH);
 
-        // Top Split Pane: Table and Details
+        // Adjusted divider location and resize weight for topSplitPane
         JSplitPane topSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, tablePanel, detailsPanel);
-        topSplitPane.setDividerLocation(400);
-        topSplitPane.setResizeWeight(0.7);
+        topSplitPane.setDividerLocation(300);
+        topSplitPane.setResizeWeight(0.3);
         topSplitPane.setOneTouchExpandable(true);
 
-        // Bottom Split Pane: Stats and Chart
+        // Adjusted divider location and resize weight for bottomSplitPane
         JSplitPane bottomSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, statsPanel, chartPanel);
         bottomSplitPane.setDividerLocation(300);
         bottomSplitPane.setResizeWeight(0.3);
@@ -53,7 +53,7 @@ public class MainFrame extends JFrame {
         // Main Split Pane: Top and Bottom
         JSplitPane mainSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, topSplitPane, bottomSplitPane);
         mainSplitPane.setDividerLocation(600);
-        mainSplitPane.setResizeWeight(0.5);
+        mainSplitPane.setResizeWeight(0.6);
         mainSplitPane.setOneTouchExpandable(true);
 
         // Add main split pane to the center
@@ -68,6 +68,9 @@ public class MainFrame extends JFrame {
                     int modelRow = tablePanel.getTable().convertRowIndexToModel(selectedRow);
                     CountryData selectedData = tablePanel.getTableModel().getCountryDataAt(modelRow);
                     detailsPanel.updateDetails(selectedData);
+                } else {
+                    // Clear details when no selection
+                    detailsPanel.updateDetails(null);
                 }
             }
         });
