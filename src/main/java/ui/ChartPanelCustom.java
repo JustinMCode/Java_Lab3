@@ -7,6 +7,7 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.chart.labels.StandardCategoryToolTipGenerator;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.renderer.category.LineAndShapeRenderer;
+import org.jfree.chart.ui.RectangleEdge;
 import org.jfree.data.category.DefaultCategoryDataset;
 
 import javax.swing.*;
@@ -32,18 +33,17 @@ public class ChartPanelCustom extends JPanel {
         String defaultMetric = "GDP per capita (constant 2005 US$)";
         DefaultCategoryDataset dataset = createDataset(currentData, defaultMetric);
 
-        // Create line chart without legend to prevent clutter
+        // Create line chart with legend
         lineChart = ChartFactory.createLineChart(
                 "GDP Metrics Over Time",
                 "Year",
                 defaultMetric,
                 dataset,
                 PlotOrientation.VERTICAL,
-                true, true, false
+                true, // Include legend
+                true, // Tooltips
+                false // URLs
         );
-
-        // Remove legend to declutter chart area
-        lineChart.removeLegend();
 
         // Enable tooltips
         LineAndShapeRenderer renderer = (LineAndShapeRenderer) lineChart.getCategoryPlot().getRenderer();
@@ -52,9 +52,9 @@ public class ChartPanelCustom extends JPanel {
         // Initialize ChartPanel
         ChartPanel chartPanel = new ChartPanel(lineChart);
         chartPanel.setDisplayToolTips(true); // Ensure tooltips are enabled
-        add(chartPanel, BorderLayout.CENTER);
+        lineChart.getLegend().setPosition(RectangleEdge.RIGHT); // Positions legend to the right
 
-        // Metric selection controls are now in FilterPanel
+        add(chartPanel, BorderLayout.CENTER);
     }
 
     // Updates the chart based on the selected metric.
