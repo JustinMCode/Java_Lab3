@@ -7,32 +7,30 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 public class StatsPanel extends JPanel {
     private final JLabel averageLabel;
     private final JLabel minLabel;
     private final JLabel maxLabel;
-    private final List<CountryData> fullDataList; // Store the full data list
 
     public StatsPanel(List<CountryData> dataList) {
         super(new GridLayout(3, 1)); // Using GridLayout for simplicity
 
-        this.fullDataList = dataList; // Store the full data list
-
-        averageLabel = new JLabel("Average (2016): ");
-        minLabel = new JLabel("Minimum (2016): ");
-        maxLabel = new JLabel("Maximum (2016): ");
+        averageLabel = new JLabel("Average: ");
+        minLabel = new JLabel("Minimum: ");
+        maxLabel = new JLabel("Maximum: ");
 
         add(averageLabel);
         add(minLabel);
         add(maxLabel);
-
-        calculateStats(fullDataList); // Use the full data list here
     }
 
-    private void calculateStats(List<CountryData> dataList) {
+    private void calculateStats(List<CountryData> dataList, String selectedMetric) {
         DescriptiveStatistics stats = new DescriptiveStatistics();
+        var ref = new Object() {
+            int minYear = Integer.MAX_VALUE;
+            int maxYear = Integer.MIN_VALUE;
+        };
 
         dataList.stream()
                 .filter(data -> {
@@ -41,30 +39,40 @@ public class StatsPanel extends JPanel {
                         System.out.println("Series name is null for country: " + data.getCountryName());
                         return false;
                     }
-                    return seriesName.trim().equalsIgnoreCase("GDP per capita (constant 2005 US$)");
+                    return seriesName.trim().equalsIgnoreCase(selectedMetric);
                 })
-                .map(data -> {
-                    Map<Integer, Double> yearlyData = data.getYearlyData(); // Use Map<Integer, Double>
-                    if (yearlyData == null) {
-                        return null;
+                .forEach(data -> {
+                    Map<Integer, Double> yearlyData = data.getYearlyData();
+                    if (yearlyData != null) {
+                        for (Map.Entry<Integer, Double> entry : yearlyData.entrySet()) {
+                            Integer year = entry.getKey();
+                            Double value = entry.getValue();
+                            if (value != null) {
+                                stats.addValue(value);
+                                if (year < ref.minYear) ref.minYear = year;
+                                if (year > ref.maxYear) ref.maxYear = year;
+                            }
+                        }
                     }
-                    return yearlyData.get(2016);
-                })
-                .filter(Objects::nonNull)
-                .forEach(stats::addValue); // Directly add Double values
+                });
 
         if (stats.getN() > 0) {
             double average = stats.getMean();
             double min = stats.getMin();
             double max = stats.getMax();
 
-            averageLabel.setText(String.format("Average GDP per Capita (2016): %.2f", average));
-            minLabel.setText(String.format("Minimum GDP per Capita (2016): %.2f", min));
-            maxLabel.setText(String.format("Maximum GDP per Capita (2016): %.2f", max));
+            String yearRange = "";
+            if (ref.minYear != Integer.MAX_VALUE && ref.maxYear != Integer.MIN_VALUE) {
+                yearRange = String.format("(%d - %d)", ref.minYear, ref.maxYear);
+            }
+
+            averageLabel.setText(String.format("Average %s %s: %.2f", selectedMetric, yearRange, average));
+            minLabel.setText(String.format("Minimum %s %s: %.2f", selectedMetric, yearRange, min));
+            maxLabel.setText(String.format("Maximum %s %s: %.2f", selectedMetric, yearRange, max));
         } else {
-            averageLabel.setText("Average GDP per Capita (2016): No data available");
-            minLabel.setText("Minimum GDP per Capita (2016): No data available");
-            maxLabel.setText("Maximum GDP per Capita (2016): No data available");
+            averageLabel.setText(String.format("Average %s: No data available", selectedMetric));
+            minLabel.setText(String.format("Minimum %s: No data available", selectedMetric));
+            maxLabel.setText(String.format("Maximum %s: No data available", selectedMetric));
         }
 
         revalidate();
@@ -72,8 +80,7 @@ public class StatsPanel extends JPanel {
     }
 
     // Method to update stats when data changes (e.g., after filtering)
-    public void updateStats(List<CountryData> filteredData) {
-        // Use the full data list to keep stats consistent
-        calculateStats(fullDataList);
+    public void updateStats(List<CountryData> filteredData, String selectedMetric) {
+        calculateStats(filteredData, selectedMetric);
     }
 }

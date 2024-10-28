@@ -11,10 +11,11 @@ import java.util.stream.Collectors;
 
 /**
  * FilterPanel allows users to filter data based on specific criteria,
- * including selecting multiple countries.
+ * including selecting multiple countries and metrics.
  */
 public class FilterPanel extends JPanel {
     private final JComboBox<String> seriesComboBox;
+    private final JComboBox<String> metricComboBox;
 
     private final JList<String> countryList;
     private final DefaultListModel<String> countryListModel;
@@ -23,6 +24,9 @@ public class FilterPanel extends JPanel {
     private final TablePanel tablePanel;
     private final StatsPanel statsPanel;
     private final ChartPanelCustom chartPanel;
+
+    private static final int MAX_COUNTRIES = 10; // Set your desired limit
+
     // Constructor
     public FilterPanel(List<CountryData> dataList, TablePanel tablePanel, StatsPanel statsPanel, ChartPanelCustom chartPanel) {
         this.originalData = dataList;
@@ -45,6 +49,11 @@ public class FilterPanel extends JPanel {
         seriesComboBox.addItem("All Series");
         seriesNames.forEach(seriesComboBox::addItem);
 
+        // Initialize metricComboBox with series names (similar to ChartPanelCustom)
+        metricComboBox = new JComboBox<>();
+        seriesNames.forEach(metricComboBox::addItem);
+        metricComboBox.setSelectedItem("GDP per capita (constant 2005 US$)");
+
         // Initialize buttons
         JButton applyFilterButton = new JButton("Apply Filter");
         JButton clearFilterButton = new JButton("Clear Filter");
@@ -52,6 +61,10 @@ public class FilterPanel extends JPanel {
         // Add components to the top filter panel
         topFilterPanel.add(new JLabel("Filter by Series: "));
         topFilterPanel.add(seriesComboBox);
+
+        topFilterPanel.add(new JLabel("Select GDP Metric: "));
+        topFilterPanel.add(metricComboBox);
+
         topFilterPanel.add(applyFilterButton);
         topFilterPanel.add(clearFilterButton);
 
@@ -75,6 +88,20 @@ public class FilterPanel extends JPanel {
         countryList = new JList<>(countryListModel);
         countryList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
         countryList.setVisibleRowCount(10); // Adjust as needed
+
+        // Add ListSelectionListener to enforce selection limit
+        countryList.addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
+                List<String> selectedCountries = countryList.getSelectedValuesList();
+                if (selectedCountries.size() > MAX_COUNTRIES) {
+                    // Deselect the last selected country
+                    int[] selectedIndices = countryList.getSelectedIndices();
+                    int deselectIndex = selectedIndices[selectedIndices.length - 1];
+                    countryList.removeSelectionInterval(deselectIndex, deselectIndex);
+                    JOptionPane.showMessageDialog(this, "You can select up to " + MAX_COUNTRIES + " countries at a time.", "Selection Limit", JOptionPane.WARNING_MESSAGE);
+                }
+            }
+        });
 
         // Initialize JScrollPane with a preferred size to limit its height
         JScrollPane countryScrollPane = new JScrollPane(countryList);
@@ -109,6 +136,7 @@ public class FilterPanel extends JPanel {
         searchButton.addActionListener(e -> searchCountry(searchField.getText()));
         selectAllButton.addActionListener(e -> selectAllCountries());
         deselectAllButton.addActionListener(e -> countryList.clearSelection());
+        metricComboBox.addActionListener(this::changeMetric); // Update when metric changes
 
         // Add MouseListener for double-click on countryList
         countryList.addMouseListener(new MouseAdapter() {
@@ -140,17 +168,19 @@ public class FilterPanel extends JPanel {
     private void clearFilter(ActionEvent e) {
         seriesComboBox.setSelectedItem("All Series");
         countryList.clearSelection();
+        metricComboBox.setSelectedIndex(0);
 
         List<CountryData> allData = originalData;
+        String selectedMetric = (String) metricComboBox.getSelectedItem();
 
         // Update TablePanel
         tablePanel.updateTableData(allData);
 
         // Update StatsPanel
-        statsPanel.updateStats(allData);
+        statsPanel.updateStats(allData, selectedMetric);
 
         // Update ChartPanelCustom
-        chartPanel.updateChart(allData);
+        chartPanel.updateChart(allData, selectedMetric);
     }
 
     /**
@@ -159,6 +189,7 @@ public class FilterPanel extends JPanel {
      */
     private void filterData() {
         String selectedSeries = (String) seriesComboBox.getSelectedItem();
+        String selectedMetric = (String) metricComboBox.getSelectedItem();
         List<CountryData> filteredData;
 
         // Filter by series
@@ -191,10 +222,15 @@ public class FilterPanel extends JPanel {
         tablePanel.updateTableData(filteredData);
 
         // Update StatsPanel
-        statsPanel.updateStats(filteredData);
+        statsPanel.updateStats(filteredData, selectedMetric);
 
         // Update ChartPanelCustom
-        chartPanel.updateChart(filteredData);
+        chartPanel.updateChart(filteredData, selectedMetric);
+    }
+
+    // Updates when the metric selection changes
+    private void changeMetric(ActionEvent e) {
+        filterData();
     }
 
     // Searches and selects a country based on user input.
