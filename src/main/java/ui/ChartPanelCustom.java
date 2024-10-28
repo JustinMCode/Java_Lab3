@@ -12,6 +12,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * ChartPanelCustom visualizes GDP metrics using JFreeChart.
@@ -20,16 +21,12 @@ import java.util.Map;
 public class ChartPanelCustom extends JPanel {
     private final JFreeChart lineChart;
     private final JComboBox<String> metricComboBox;
-    private final List<CountryData> originalData;
+    private List<CountryData> currentData;
 
-    /**
-     * Constructor initializes the chart with the provided data.
-     *
-     * @param dataList List of CountryData to visualize.
-     */
+    // Constructor initializes the chart with the provided data.
     public ChartPanelCustom(List<CountryData> dataList) {
         super(new BorderLayout());
-        this.originalData = dataList;
+        this.currentData = dataList; // Initialize currentData with dataList
 
         // Initialize metric selection dropdown
         metricComboBox = new JComboBox<>();
@@ -41,9 +38,9 @@ public class ChartPanelCustom extends JPanel {
         metricComboBox.setSelectedItem("GDP per capita (constant 2005 US$)");
 
         // Initialize dataset
-        DefaultCategoryDataset dataset = createDataset(dataList, (String) metricComboBox.getSelectedItem());
+        DefaultCategoryDataset dataset = createDataset(currentData, (String) metricComboBox.getSelectedItem());
 
-        // Create line chart
+        // Create line chart without legend to prevent clutter
         lineChart = ChartFactory.createLineChart(
                 "GDP Metrics Over Time",
                 "Year",
@@ -53,8 +50,12 @@ public class ChartPanelCustom extends JPanel {
                 true, true, false
         );
 
+        // Remove legend to declutter chart area
+        lineChart.removeLegend();
+
         // Initialize ChartPanel
         ChartPanel chartPanel = new ChartPanel(lineChart);
+        chartPanel.setDisplayToolTips(true);
         add(chartPanel, BorderLayout.CENTER);
 
         // Add metric selection controls
@@ -67,11 +68,7 @@ public class ChartPanelCustom extends JPanel {
         metricComboBox.addActionListener(this::changeMetric);
     }
 
-    /**
-     * Handles metric selection changes.
-     *
-     * @param e ActionEvent triggered by selecting a different metric.
-     */
+    // Handles metric selection changes.
     private void changeMetric(ActionEvent e) {
         String selectedMetric = (String) metricComboBox.getSelectedItem();
         lineChart.setTitle(selectedMetric + " Over Time");
@@ -79,23 +76,29 @@ public class ChartPanelCustom extends JPanel {
         updateChartWithMetric(selectedMetric);
     }
 
-    /**
-     * Updates the chart based on the selected metric.
-     *
-     * @param selectedMetric The GDP metric selected by the user.
-     */
+    // Updates the chart based on the selected metric.
     private void updateChartWithMetric(String selectedMetric) {
-        DefaultCategoryDataset dataset = createDataset(originalData, selectedMetric);
+        DefaultCategoryDataset dataset = createDataset(currentData, selectedMetric);
         lineChart.getCategoryPlot().setDataset(dataset);
+
+        // Update chart title with selected countries
+        List<String> selectedCountries = currentData.stream()
+                .map(CountryData::getCountryName)
+                .distinct()
+                .collect(Collectors.toList());
+
+        String title = selectedMetric + " Over Time";
+        if (!selectedCountries.isEmpty()) {
+            title += " for " + String.join(", ", selectedCountries);
+        }
+        lineChart.setTitle(title);
+
+        lineChart.getCategoryPlot().getRangeAxis().setLabel(selectedMetric);
+
+        System.out.println("Chart updated with " + currentData.size() + " entries for metric: " + selectedMetric);
     }
 
-    /**
-     * Creates a dataset for the chart based on the selected series.
-     *
-     * @param dataList      List of CountryData.
-     * @param selectedSeries Series to visualize (e.g., "GDP per capita (constant 2005 US$)").
-     * @return DefaultCategoryDataset for the chart.
-     */
+    // Creates a dataset for the chart based on the selected series.
     private DefaultCategoryDataset createDataset(List<CountryData> dataList, String selectedSeries) {
         DefaultCategoryDataset dataset = new DefaultCategoryDataset();
 
@@ -114,15 +117,11 @@ public class ChartPanelCustom extends JPanel {
         return dataset;
     }
 
-    /**
-     * Updates the chart based on the filtered data and selected metric.
-     *
-     * @param filteredData List of filtered CountryData.
-     */
+    // Updates the chart based on the filtered data and selected metric.
+
     public void updateChart(List<CountryData> filteredData) {
+        this.currentData = filteredData; // Update currentData with filteredData
         String selectedMetric = (String) metricComboBox.getSelectedItem();
-        DefaultCategoryDataset dataset = createDataset(filteredData, selectedMetric);
-        lineChart.getCategoryPlot().setDataset(dataset);
-        System.out.println("Chart updated with " + filteredData.size() + " entries for metric: " + selectedMetric);
+        updateChartWithMetric(selectedMetric);
     }
 }

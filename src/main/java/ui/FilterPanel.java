@@ -23,7 +23,6 @@ public class FilterPanel extends JPanel {
     private final TablePanel tablePanel;
     private final StatsPanel statsPanel;
     private final ChartPanelCustom chartPanel;
-
     // Constructor
     public FilterPanel(List<CountryData> dataList, TablePanel tablePanel, StatsPanel statsPanel, ChartPanelCustom chartPanel) {
         this.originalData = dataList;
@@ -178,6 +177,11 @@ public class FilterPanel extends JPanel {
             filteredData = filteredData.stream()
                     .filter(data -> selectedCountries.contains(data.getCountryName()))
                     .collect(Collectors.toList());
+        }
+
+        // Provide feedback if no data is available
+        if (filteredData.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "No data available for the selected criteria.", "No Data", JOptionPane.INFORMATION_MESSAGE);
         }
 
         // Debug: Print number of filtered entries
