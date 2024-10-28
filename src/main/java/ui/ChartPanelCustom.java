@@ -7,8 +7,8 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.chart.labels.StandardCategoryToolTipGenerator;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.renderer.category.LineAndShapeRenderer;
-import org.jfree.chart.ui.RectangleEdge;
 import org.jfree.data.category.DefaultCategoryDataset;
+import org.jfree.chart.ui.RectangleEdge; // Ensure correct import for legend positioning
 
 import javax.swing.*;
 import java.awt.*;
@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 
 /**
  * ChartPanelCustom visualizes GDP metrics using JFreeChart.
- * Supports multiple countries for comparison.
+ * Supports multiple countries and series for comparison.
  */
 public class ChartPanelCustom extends JPanel {
     private final JFreeChart lineChart;
@@ -49,11 +49,12 @@ public class ChartPanelCustom extends JPanel {
         LineAndShapeRenderer renderer = (LineAndShapeRenderer) lineChart.getCategoryPlot().getRenderer();
         renderer.setDefaultToolTipGenerator(new StandardCategoryToolTipGenerator());
 
+        // Adjust legend position if desired
+        lineChart.getLegend().setPosition(RectangleEdge.RIGHT); // Positions legend to the right
+
         // Initialize ChartPanel
         ChartPanel chartPanel = new ChartPanel(lineChart);
         chartPanel.setDisplayToolTips(true); // Ensure tooltips are enabled
-        lineChart.getLegend().setPosition(RectangleEdge.RIGHT); // Positions legend to the right
-
         add(chartPanel, BorderLayout.CENTER);
     }
 
@@ -68,13 +69,23 @@ public class ChartPanelCustom extends JPanel {
                 .distinct()
                 .collect(Collectors.toList());
 
-        String title = selectedMetric + " Over Time";
-        if (!selectedCountries.isEmpty()) {
-            title += " for " + String.join(", ", selectedCountries);
+        String title;
+        if (selectedCountries.isEmpty()) {
+            title = "No Data Available";
+        } else {
+            if (selectedMetric.equals("All Series")) {
+                title = "All GDP Metrics Over Time for " + String.join(", ", selectedCountries);
+            } else {
+                title = selectedMetric + " Over Time for " + String.join(", ", selectedCountries);
+            }
         }
         lineChart.setTitle(title);
 
-        lineChart.getCategoryPlot().getRangeAxis().setLabel(selectedMetric);
+        if (selectedMetric.equals("All Series")) {
+            lineChart.getCategoryPlot().getRangeAxis().setLabel("Value");
+        } else {
+            lineChart.getCategoryPlot().getRangeAxis().setLabel(selectedMetric);
+        }
 
         System.out.println("Chart updated with " + currentData.size() + " entries for metric: " + selectedMetric);
     }
@@ -86,16 +97,23 @@ public class ChartPanelCustom extends JPanel {
     }
 
     // Creates a dataset for the chart based on the selected series.
-    private DefaultCategoryDataset createDataset(List<CountryData> dataList, String selectedSeries) {
+    private DefaultCategoryDataset createDataset(List<CountryData> dataList, String selectedMetric) {
         DefaultCategoryDataset dataset = new DefaultCategoryDataset();
 
+        if (dataList == null || dataList.isEmpty()) {
+            return dataset; // Return an empty dataset
+        }
+
         for (CountryData data : dataList) {
-            if (data.getSeriesName().equals(selectedSeries)) {
+            // Include all series if "All Series" is selected
+            if (selectedMetric.equals("All Series") || data.getSeriesName().equals(selectedMetric)) {
                 for (Map.Entry<Integer, Double> entry : data.getYearlyData().entrySet()) {
                     Integer year = entry.getKey();
                     Double value = entry.getValue();
                     if (value != null) {
-                        dataset.addValue(value, data.getCountryName(), year.toString());
+                        // Use both country name and series name as the row key to differentiate in the legend
+                        String rowKey = data.getCountryName() + " - " + data.getSeriesName();
+                        dataset.addValue(value, rowKey, year.toString());
                     }
                 }
             }

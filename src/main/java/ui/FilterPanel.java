@@ -5,8 +5,8 @@ import main.java.model.CountryData;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.*;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -14,7 +14,6 @@ import java.util.stream.Collectors;
  * including selecting multiple countries and metrics.
  */
 public class FilterPanel extends JPanel {
-    private final JComboBox<String> seriesComboBox;
     private final JComboBox<String> metricComboBox;
 
     private final JList<String> countryList;
@@ -36,21 +35,17 @@ public class FilterPanel extends JPanel {
 
         setLayout(new BorderLayout());
 
-        // Initialize top filter components (Series selection and filter buttons)
+        // Initialize top filter components (Metric selection and filter buttons)
         JPanel topFilterPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
 
-        // Extract unique series names for filtering
+        // Extract unique series names for filtering and metric selection
         Set<String> seriesNames = originalData.stream()
                 .map(CountryData::getSeriesName)
                 .collect(Collectors.toSet());
 
-        // Initialize JComboBox with series names
-        seriesComboBox = new JComboBox<>();
-        seriesComboBox.addItem("All Series");
-        seriesNames.forEach(seriesComboBox::addItem);
-
-        // Initialize metricComboBox with series names (similar to ChartPanelCustom)
+        // Initialize metricComboBox with series names (this will be our single filter)
         metricComboBox = new JComboBox<>();
+        metricComboBox.addItem("All Series"); // Option to select all series
         seriesNames.forEach(metricComboBox::addItem);
         metricComboBox.setSelectedItem("GDP per capita (constant 2005 US$)");
 
@@ -59,10 +54,7 @@ public class FilterPanel extends JPanel {
         JButton clearFilterButton = new JButton("Clear Filter");
 
         // Add components to the top filter panel
-        topFilterPanel.add(new JLabel("Filter by Series: "));
-        topFilterPanel.add(seriesComboBox);
-
-        topFilterPanel.add(new JLabel("Select GDP Metric: "));
+        topFilterPanel.add(new JLabel("Select Metric: "));
         topFilterPanel.add(metricComboBox);
 
         topFilterPanel.add(applyFilterButton);
@@ -163,9 +155,8 @@ public class FilterPanel extends JPanel {
 
     // Clears all applied filters and resets UI components to show all data.
     private void clearFilter(ActionEvent e) {
-        seriesComboBox.setSelectedItem("All Series");
+        metricComboBox.setSelectedItem("All Series");
         countryList.clearSelection();
-        metricComboBox.setSelectedIndex(0);
 
         List<CountryData> allData = originalData;
         String selectedMetric = (String) metricComboBox.getSelectedItem();
@@ -181,21 +172,20 @@ public class FilterPanel extends JPanel {
     }
 
     /**
-     * Filters the data based on selected series and countries,
+     * Filters the data based on selected metric and countries,
      * and updates the UI components accordingly.
      */
     private void filterData() {
-        String selectedSeries = (String) seriesComboBox.getSelectedItem();
         String selectedMetric = (String) metricComboBox.getSelectedItem();
         List<CountryData> filteredData;
 
-        // Filter by series
-        assert selectedSeries != null;
-        if (selectedSeries.equals("All Series")) {
+        // Filter by selected metric
+        assert selectedMetric != null;
+        if (selectedMetric.equals("All Series")) {
             filteredData = originalData;
         } else {
             filteredData = originalData.stream()
-                    .filter(data -> data.getSeriesName().equals(selectedSeries))
+                    .filter(data -> data.getSeriesName().equals(selectedMetric))
                     .collect(Collectors.toList());
         }
 

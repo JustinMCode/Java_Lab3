@@ -5,6 +5,8 @@ import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -27,34 +29,31 @@ public class StatsPanel extends JPanel {
 
     private void calculateStats(List<CountryData> dataList, String selectedMetric) {
         DescriptiveStatistics stats = new DescriptiveStatistics();
-        var ref = new Object() {
-            int minYear = Integer.MAX_VALUE;
-            int maxYear = Integer.MIN_VALUE;
-        };
+        List<Integer> years = new ArrayList<>();
 
-        dataList.stream()
-                .filter(data -> {
-                    String seriesName = data.getSeriesName();
-                    if (seriesName == null) {
-                        System.out.println("Series name is null for country: " + data.getCountryName());
-                        return false;
-                    }
-                    return seriesName.trim().equalsIgnoreCase(selectedMetric);
-                })
-                .forEach(data -> {
-                    Map<Integer, Double> yearlyData = data.getYearlyData();
-                    if (yearlyData != null) {
-                        for (Map.Entry<Integer, Double> entry : yearlyData.entrySet()) {
-                            Integer year = entry.getKey();
-                            Double value = entry.getValue();
-                            if (value != null) {
-                                stats.addValue(value);
-                                if (year < ref.minYear) ref.minYear = year;
-                                if (year > ref.maxYear) ref.maxYear = year;
-                            }
+        // If "All Series" is selected, default to "GDP per capita (constant 2005 US$)"
+        String metricForStats = selectedMetric.equals("All Series") ? "GDP per capita (constant 2005 US$)" : selectedMetric;
+
+        for (CountryData data : dataList) {
+            String seriesName = data.getSeriesName();
+            if (seriesName == null) {
+                System.out.println("Series name is null for country: " + data.getCountryName());
+                continue;
+            }
+            if (seriesName.trim().equalsIgnoreCase(metricForStats)) {
+                Map<Integer, Double> yearlyData = data.getYearlyData();
+                if (yearlyData != null) {
+                    for (Map.Entry<Integer, Double> entry : yearlyData.entrySet()) {
+                        int year = entry.getKey();
+                        Double value = entry.getValue();
+                        if (value != null) {
+                            stats.addValue(value);
+                            years.add(year);
                         }
                     }
-                });
+                }
+            }
+        }
 
         if (stats.getN() > 0) {
             double average = stats.getMean();
@@ -62,17 +61,19 @@ public class StatsPanel extends JPanel {
             double max = stats.getMax();
 
             String yearRange = "";
-            if (ref.minYear != Integer.MAX_VALUE && ref.maxYear != Integer.MIN_VALUE) {
-                yearRange = String.format("(%d - %d)", ref.minYear, ref.maxYear);
+            if (!years.isEmpty()) {
+                int minYear = Collections.min(years);
+                int maxYear = Collections.max(years);
+                yearRange = String.format("(%d - %d)", minYear, maxYear);
             }
 
-            averageLabel.setText(String.format("Average %s %s: %.2f", selectedMetric, yearRange, average));
-            minLabel.setText(String.format("Minimum %s %s: %.2f", selectedMetric, yearRange, min));
-            maxLabel.setText(String.format("Maximum %s %s: %.2f", selectedMetric, yearRange, max));
+            averageLabel.setText(String.format("Average %s %s: %.2f", metricForStats, yearRange, average));
+            minLabel.setText(String.format("Minimum %s %s: %.2f", metricForStats, yearRange, min));
+            maxLabel.setText(String.format("Maximum %s %s: %.2f", metricForStats, yearRange, max));
         } else {
-            averageLabel.setText(String.format("Average %s: No data available", selectedMetric));
-            minLabel.setText(String.format("Minimum %s: No data available", selectedMetric));
-            maxLabel.setText(String.format("Maximum %s: No data available", selectedMetric));
+            averageLabel.setText(String.format("Average %s: No data available", metricForStats));
+            minLabel.setText(String.format("Minimum %s: No data available", metricForStats));
+            maxLabel.setText(String.format("Maximum %s: No data available", metricForStats));
         }
 
         revalidate();
