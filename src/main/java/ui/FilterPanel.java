@@ -81,6 +81,15 @@ public class FilterPanel extends JPanel {
         countryList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
         countryList.setVisibleRowCount(10);
 
+        // Selects United States as standard country
+        int usaIndex = countryListModel.indexOf("United States");
+        if (usaIndex >= 0) {
+            countryList.setSelectedIndex(usaIndex);
+            countryList.ensureIndexIsVisible(usaIndex);
+            // Apply the filter to update the components with the initial selection
+            filterData();
+        }
+
         // Add ListSelectionListener to enforce selection limit
         countryList.addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
@@ -124,7 +133,10 @@ public class FilterPanel extends JPanel {
         applyFilterButton.addActionListener(this::applyFilter);
         clearFilterButton.addActionListener(this::clearFilter);
         searchButton.addActionListener(e -> searchCountry(searchField.getText()));
-        deselectAllButton.addActionListener(e -> countryList.clearSelection());
+        deselectAllButton.addActionListener(e -> {
+            countryList.clearSelection();
+            filterData(); // Update components when countries are deselected
+        });
         metricComboBox.addActionListener(this::changeMetric); // Update when metric changes
 
         // Add MouseListener for double-click on countryList
@@ -153,22 +165,23 @@ public class FilterPanel extends JPanel {
         filterData();
     }
 
-    // Clears all applied filters and resets UI components to show all data.
+    // Clears all applied filters and resets UI components to show no data
     private void clearFilter(ActionEvent e) {
         metricComboBox.setSelectedItem("All Series");
         countryList.clearSelection();
 
-        List<CountryData> allData = originalData;
+        // Set components to show no data
+        List<CountryData> emptyData = Collections.emptyList();
         String selectedMetric = (String) metricComboBox.getSelectedItem();
 
         // Update TablePanel
-        tablePanel.updateTableData(allData);
+        tablePanel.updateTableData(emptyData);
 
         // Update StatsPanel
-        statsPanel.updateStats(allData, selectedMetric);
+        statsPanel.updateStats(emptyData, selectedMetric);
 
         // Update ChartPanelCustom
-        chartPanel.updateChart(allData, selectedMetric);
+        chartPanel.updateChart(emptyData, selectedMetric);
     }
 
     /**
@@ -195,6 +208,9 @@ public class FilterPanel extends JPanel {
             filteredData = filteredData.stream()
                     .filter(data -> selectedCountries.contains(data.getCountryName()))
                     .collect(Collectors.toList());
+        } else {
+            // If no countries are selected, set filteredData to an empty list
+            filteredData = Collections.emptyList();
         }
 
         // Provide feedback if no data is available
